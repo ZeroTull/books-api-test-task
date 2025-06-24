@@ -1,0 +1,47 @@
+# IntelliJ project files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Ignore workspace but keep shared configs
+.idea/workspace.xml
+.idea/shelf/
+
+# Build output
+/target/
+/out/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Maven local repo config
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+
+# Allure results and reports
+.allure/
+allure-results/
+allure-report/
+target/site/allure-maven-plugin/
+
+# Test output
+surefire-reports/
+test-output/
+
+# System-specific config
+*.class
+*.hprof
+*.orig
+
+# VSCode if used
+.vscode/
+
+# GitHub Actions
+.github/*.log

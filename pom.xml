@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  ────────────────────────────────────────────────────────────────
+      Books-API automated test suite
+      ▪ Java 16
+      ▪ Cucumber + TestNG
+      ▪ Rest-Assured + Allure reporting
+     ──────────────────────────────────────────────────────────────── -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+           http://maven.apache.org/POM/4.0.0
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>books-api-tests</groupId>
+    <artifactId>books-api-tests</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <!-- ─────────────── Global properties ─────────────── -->
+    <properties>
+        <!-- JDK tool-chain -->
+        <java.version>16</java.version>
+
+        <!-- Library versions (bump here only) -->
+        <cucumber.version>7.11.0</cucumber.version>
+        <restassured.version>5.5.0</restassured.version>
+        <allure.version>2.29.1</allure.version>
+        <testng.version>7.9.0</testng.version>
+        <assertj.version>3.27.3</assertj.version>
+        <jackson.version>2.14.2</jackson.version>
+        <lombok.version>1.18.34</lombok.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <logback.version>1.2.11</logback.version>
+
+        <!-- Build behaviour -->
+        <parallel.thread.count>4</parallel.thread.count>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+
+    <!-- ─────────────── Dependencies ─────────────── -->
+    <dependencies>
+
+        <!-- ================== Test Framework Stack ================== -->
+        <dependency> <!-- Cucumber glue -->
+            <groupId>io.cucumber</groupId><artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version><scope>test</scope>
+        </dependency>
+        <dependency> <!-- Cucumber runner on TestNG -->
+            <groupId>io.cucumber</groupId><artifactId>cucumber-testng</artifactId>
+            <version>${cucumber.version}</version><scope>test</scope>
+        </dependency>
+        <dependency> <!-- TestNG itself -->
+            <groupId>org.testng</groupId><artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+        </dependency>
+
+        <!-- ================== HTTP / JSON ================== -->
+        <!-- Rest-Assured (compile scope: used by main code) -->
+        <dependency>
+            <groupId>io.rest-assured</groupId><artifactId>rest-assured</artifactId>
+            <version>${restassured.version}</version>
+        </dependency>
+        <!-- Jackson / JSON mapping -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <!-- JSON schema validation -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${restassured.version}</version>
+        </dependency>
+
+        <!-- ================== Assertion & Helpers ================== -->
+        <dependency>
+            <groupId>org.assertj</groupId><artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version><scope>test</scope>
+        </dependency>
+        <!-- Lombok (compile-time only) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId><artifactId>lombok</artifactId>
+            <version>${lombok.version}</version><scope>provided</scope>
+        </dependency>
+
+        <!-- ================== Allure Reporting ================== -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId><artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version><scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId><artifactId>allure-cucumber7-jvm</artifactId>
+            <version>${allure.version}</version><scope>test</scope>
+            <!-- gherkin exclusion keeps cucumber version aligned -->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.cucumber</groupId><artifactId>gherkin</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Rest-Assured → Allure filter (compile & test) -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId><artifactId>allure-rest-assured</artifactId>
+            <version>${allure.version}</version>
+        </dependency>
+
+        <!-- ================== Logging ================== -->
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <!-- Logback implementation -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId><artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <!-- ================== Misc (legacy) ================== -->
+        <!-- Kept for backward compatibility – consider removal if unused -->
+        <dependency> <groupId>org.codehaus.jettison</groupId><artifactId>jettison</artifactId><version>1.5.4</version> </dependency>
+        <dependency> <groupId>javax.ws.rs</groupId><artifactId>javax.ws.rs-api</artifactId><version>2.1.1</version> </dependency>
+
+    </dependencies>
+
+    <!-- ─────────────── Build Plugins ─────────────── -->
+    <build>
+        <plugins>
+            <!-- Lombok annotation processing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>${java.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId><artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+
+            <!-- Parallel TestNG execution via Surefire -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <parallel>methods</parallel>
+                    <threadCount>${parallel.thread.count}</threadCount>
+                </configuration>
+            </plugin>
+
+            <!-- Allure report generation (optional; keep if you run mvn allure:report) -->
+            <plugin>
+                <groupId>io.qameta.allure</groupId><artifactId>allure-maven</artifactId>
+                <version>2.14.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,114 @@
+Books-API – Defect List
+=======================
+
+1. DELETE /books/{id} — 500 when ID not found
+   • Expected : 404 Not Found
+   • Actual   : 500 Internal Server Error
+
+   Steps to Reproduce
+   ------------------
+    1. Send request using the following data:
+       curl -X DELETE http://<HOST>/api/v1/books/999999 \
+       -H "Authorization: Basic <valid-creds>"
+    2. Observe HTTP 500 with body “Error while deleting book from database”.
+
+--------------------------------------------------------------------------
+
+2. PUT /books/{id} — Pages field not updated
+   • Expected : server persists new pages value.
+   • Actual   : response & subsequent GET still show old value.
+
+   Steps to Reproduce
+   ------------------
+    1. Create a book, note the generated ID (e.g. **12345**).
+    2. Send request using the following data:
+       curl -X PUT http://<HOST>/api/v1/books/12345 \
+       -H "Content-Type: application/json" \
+       -d '{"name":"Any","author":"A","publication":"P",
+       "category":"C","pages":999,"price":1.23}'
+    3. GET book with the same ID — `pages` remains unchanged.
+
+--------------------------------------------------------------------------
+
+3. POST /books — Unhandled 413 (payload-too-large ➜ 500)
+   • Expected : 413 Payload Too Large (or 422).
+   • Actual   : 500 Internal Server Error.
+
+   Steps to Reproduce
+   ------------------
+    1. Generate 1 MB text file:
+    2. Send request using the following data:
+       curl -X POST http://<HOST>/api/v1/books \
+       -H "Content-Type: application/json" \
+       -d @"<(jq -Rs '{name:"Big",author:"A",publication:"P",category:.,pages:"1",price:1.0}' big.txt)"
+    3. Server responds 500.
+
+--------------------------------------------------------------------------
+
+4. DELETE /books/{id} — Returns 200 instead of 204
+   • Expected : 204 No Content.
+   • Actual   : 200 OK with empty JSON body.
+
+   Steps to Reproduce
+   ------------------
+    1. Create a book → ID **X**.
+    2. Send request using the following data:
+       curl -X DELETE http://<HOST>/api/v1/books/X \
+       -H "Authorization: Basic <valid-creds>"
+    3. Note status **200** (should be 204).
+
+--------------------------------------------------------------------------
+
+5. POST /books — Allows duplicate records
+   • Expected : 409 Conflict / 422 Unprocessable Entity.
+   • Actual   : Second POST succeeds (200) and inserts duplicate.
+
+   Steps to Reproduce
+   ------------------
+    1. Prepare payload file `book.json` with a full book entity.
+    2. Send twice request using the following data **twice**:
+       curl -X POST http://<HOST>/api/v1/books \
+       -H "Content-Type: application/json" \
+       -d @book.json
+    3. Both calls return 200 and two rows appear in `/books` list.
+
+--------------------------------------------------------------------------
+
+6. POST /books — Success code is 200 instead of 201
+   • Expected : 201 Created + Location header.
+   • Actual   : 200 OK.
+
+   Steps to Reproduce
+   ------------------
+    1. Send request using the following data:
+       curl -X POST http://<HOST>/api/v1/books \
+       -H "Content-Type: application/json" \
+       -d '{"name":"N","author":"A","publication":"P",
+       "category":"C","pages":"123","price":9.99}'
+    2. Response status = **200** (should be 201).
+
+--------------------------------------------------------------------------
+
+7. DELETE /books — Flaky 500 “strange issue”
+   • Symptom : Intermittent 500 even for valid existing IDs.
+   • Status   : Steps to reproduce not deterministic.
+
+   Steps to Reproduce Attempt
+   ---------------------
+    1. Repeatedly sent delete requests:
+       curl -s -o /dev/null -w "%{http_code}\n" -X DELETE http://<HOST>/api/v1/books/$ID;
+    2. Roughly 1 in 10 deletions returns 500. Root cause unknown.
+
+--------------------------------------------------------------------------
+
+8. POST /books — 500 when payload has every field empty
+   • **Expected** : 400 Bad Request (validation error).
+   • **Actual**   : 500 Internal Server Error.
+
+   **Steps to Reproduce**
+   ```bash
+   curl -X POST -u <user>:<password> -H "Content-Type: application/json" \
+        -d '{"name":"","author":"","publication":"","category":"","pages":"","price":""}' \
+        http://<HOST>/api/v1/books
+   ```
+   Server responds **500**.

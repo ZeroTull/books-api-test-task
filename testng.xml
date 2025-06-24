@@ -1,0 +1,7 @@
+<suite name="Books API Tests" parallel="methods" thread-count="4">
+    <test name="BooksTests">
+        <classes>
+            <class name="runner.TestRunner"/>
+        </classes>
+    </test>
+</suite>
