@@ -3,15 +3,16 @@ name: API Test Suite
 # ───────────────────────────── Triggers ─────────────────────────────
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]          # or 'main'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 # ───────────────────────────── Job matrix ───────────────────────────
 jobs:
   run-api-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30           
 
     env:
       API_BASEURL : ${{ secrets.API_BASEURL }}
@@ -19,6 +20,7 @@ jobs:
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
 
     steps:
+
       # ---------- Source ----------
       - name: Checkout source
         uses: actions/checkout@v3
@@ -28,25 +30,30 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key:  ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key : ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
       # ---------- JDK ----------
-      - name: ☕Set up Temurin 17
+      - name: ☕ Set up Temurin 17
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
+          cache: maven            
 
-      # ---------- Tests ----------
+      # ---------- Tests + Allure results ----------
       - name: Run API tests
-        run: mvn -B clean test
+        run: |
+          mvn -B -ntp -T1C \
+              -Dapi.baseUrl="$API_BASEURL" \
+              -Dapi.username="$API_USERNAME" \
+              -Dapi.password="$API_PASSWORD" \
+              -Dapi.timeout=10 \
+              -Dretry.count=2 \
+              clean test                \
+              allure:report             
 
-      # ---------- Allure ----------
-      - name: Generate Allure report
-        run: mvn -B allure:report
-
+      # ---------- Artifacts ----------
       - name: Upload Allure HTML
         uses: actions/upload-artifact@v4
         with:
