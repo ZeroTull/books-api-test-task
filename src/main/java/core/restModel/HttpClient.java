@@ -9,13 +9,14 @@ import io.restassured.config.JsonConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.path.json.config.JsonPathConfig;
 import lombok.SneakyThrows;
 import utils.JsonUtils;
 import utils.RestAssuredUtils;
+import utils.restAssured.SmartLoggingFilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Thin HTTP façade.  All test layers should go through this class.
@@ -35,9 +36,10 @@ public class HttpClient {
                 .jsonConfig(JsonConfig.jsonConfig()
                         .numberReturnType(JsonPathConfig.NumberReturnType.BIG_DECIMAL));
 
+        RestAssured.replaceFiltersWith(Collections.emptyList());
         RestAssured.filters(Arrays.asList(
                 new RequestLoggingFilter(LogDetail.ALL),
-                new ResponseLoggingFilter(LogDetail.ALL)));
+                new SmartLoggingFilter()));
     }
 
     // ───────────────── Default CRUD wrappers ────────────────── //

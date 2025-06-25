@@ -18,6 +18,7 @@ Feature: POST /books – create new books
 
   # ───────────────────── Negative+edge cases ─────────────────────
   @neg
+  @bug(api-returns-200)
   Scenario: Creating a duplicate book should return conflict
     Given A book titled "Ordo Xenos" by author "Velayne Ramaeus"
     And   I create the book
@@ -39,6 +40,7 @@ Feature: POST /books – create new books
     Then  the response code should be 400
 
   @neg
+  @bug(api-returns-500)
   Scenario: Creating a book with an empty body returns 400
     When  I send a request with "null" body to "/books"
     Then  the response code should be 400
@@ -56,6 +58,7 @@ Feature: POST /books – create new books
     Then  the response code should be 400
 
   @neg
+  @bug(api-returns-500)
   Scenario: Create a book with large payload
     Given I have a book payload with 1MB of text
     When  User sends a "POST" request to "/books"

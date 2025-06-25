@@ -11,6 +11,7 @@ Feature: PUT /books – update books
     Then  the title should be "For the Emperor"
 
   @happy @smoke
+  @bug(does-not-update-pages)
   Scenario: Update every field except id
     When I update the book with:
       | name        | Emperors Light  |
@@ -39,6 +40,7 @@ Feature: PUT /books – update books
       | /999999 |
 
   @neg
+  @bug(api-returns-500)
   Scenario: Update non-existing ID → 404
     When  User sends a "PUT" request to "/books/999999"
     Then  the response code should be 404
